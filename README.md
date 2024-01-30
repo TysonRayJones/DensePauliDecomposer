@@ -1,4 +1,4 @@
-[Decomposing dense matrices into dense Pauli tensors](TODO)
+[Decomposing dense matrices into dense Pauli tensors](https://arxiv.org/abs/2401.16378)
 ==================================================
 
 > Tyson Jones
@@ -6,11 +6,20 @@
 > - Institute of Physics, EPFL
 > - Quantum Motion Technologies Ltd
 
-This repository contains a `Python` implementation of the algorithm presented by [this manuscript](TODO) for decomposing an arbitrary complex matrix into a weighted sum of Pauli strings.
-Our main algorithm is defined as function `calcPauliCoeffFast()` in [`our_method.py`](our_method.py), with an optimised implementation defined as `calcPauliCoeffFaster()`.  
+This repository contains a `Python` implementation of the algorithm presented by [this manuscript](https://arxiv.org/abs/2401.16378) for decomposing an arbitrary complex matrix into a weighted sum of Pauli strings.
+Our main algorithm is defined as function `calcPauliCoeffFast()` in [`our_method.py`](our_method.py), with an optimised implementation defined as `calcPauliCoeffFaster()`. We include benchmarking in [`benchmarking.py`](benchmarking.py) against the [`PauliDecomposer`](https://link.springer.com/article/10.1007/s11128-023-04204-w) with code modified from its [source repo](https://github.com/sebastianvromero/PauliComposer).
 
-We include benchmarking in [`benchmarking.py`](benchmarking.py) against the [`PauliDecomposer`](https://link.springer.com/article/10.1007/s11128-023-04204-w) with code modified from its [source repo](https://github.com/sebastianvromero/PauliComposer).
-
+If this code is useful to you, feel free to cite
+```
+@misc{jones2024decomposing,
+      title={Decomposing dense matrices into dense Pauli tensors}, 
+      author={Tyson Jones},
+      year={2024},
+      eprint={2401.16378},
+      archivePrefix={arXiv},
+      primaryClass={quant-ph}
+}
+```
 
 
 # Usage
