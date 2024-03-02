@@ -7,11 +7,11 @@ from numpy import array
     Bitwise functions
 '''
 
-@njit(inline='always')
+#@njit(inline='always')
 def getPowerOf2(n):
     return 1 << n
 
-@njit(inline='always')
+#@njit(inline='always')
 def getLog2(n):
     r  = (n & 0xAAAAAAAA)  != 0
     r |= ((n & 0xFFFF0000) != 0) << 4
@@ -20,15 +20,15 @@ def getLog2(n):
     r |= ((n & 0xCCCCCCCC) != 0) << 1
     return r
 
-@njit(inline='always')
+#@njit(inline='always')
 def getBit(n, t):
     return (n >> t) & 1
 
-@njit(inline='always')
+#@njit(inline='always')
 def getGrayCode(n):
     return n ^ (n >> 1)
 
-@njit(inline='always')
+#@njit(inline='always')
 def getChangedBit(i, j):
     return getLog2(i ^ j)
 
@@ -45,13 +45,13 @@ PAULI_MATRICES = array([
     [[1,0],[0,-1]]
 ])
 
-@njit(inline='always')
+#@njit(inline='always')
 def getPauliFlag(n, t):
     b0 = getBit(n, 2*t)
     b1 = getBit(n, 2*t+1)
     return (b1 << 1) | b0
 
-@njit(inline='always')
+#@njit(inline='always')
 def getMaskOfXY(n, numQubits):
     mask = 0
 
@@ -62,7 +62,7 @@ def getMaskOfXY(n, numQubits):
 
     return mask
 
-@njit(inline='always')
+#@njit(inline='always')
 def getPauliElem(n, t, i, mask):
     p = getPauliFlag(n, t)
     a = getBit(i, t)
@@ -70,7 +70,7 @@ def getPauliElem(n, t, i, mask):
     e = PAULI_MATRICES[p][a][b]
     return e
 
-@njit(inline='always')
+#@njit(inline='always')
 def getFactor(n, i, mask, numQubits):
     factor = 1
 
@@ -85,7 +85,7 @@ def getFactor(n, i, mask, numQubits):
     Inner product
 '''
 
-@njit(cache=True)
+#@njit(cache=True)
 def calcPauliCoeff(n, matrix):
     '''
         Calculates the coefficient of the n-th 
@@ -130,7 +130,7 @@ def calcPauliCoeff(n, matrix):
     Decomposition
 '''
 
-@njit(cache=True)
+##@njit(cache=True)
 def calcPauliVector(matrix):
     dim = len(matrix)**2
     vec = [calcPauliCoeff(n, matrix) for n in range(dim)]

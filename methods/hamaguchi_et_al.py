@@ -29,7 +29,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 
-@njit(cache=True)
+#@njit(cache=True)
 def _state_in_pauli_basis_inplace_calculation(
     n_qubit: int, matrix: np.ndarray
 ) -> np.ndarray:

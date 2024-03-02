@@ -34,7 +34,7 @@ import scipy.sparse as sp
 import math
 
 
-@njit(cache=True)
+#@njit(cache=True)
 def PauliDecomposition(matrix):
 
     matDim = matrix.shape[0]
@@ -63,6 +63,6 @@ def PauliDecomposition(matrix):
     return coeffs
 
 
-@njit(cache=True)
+#@njit(cache=True)
 def calcPauliVector(matrix):
     return PauliDecomposition(matrix)
