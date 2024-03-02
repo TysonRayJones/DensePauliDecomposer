@@ -11,6 +11,16 @@ import methods.hantzko_et_al
 
 
 
+print('''
+    For these tests, JIT is enabled for all methods except Romero at al's,
+    which didn't work out-of-the-box. This is fine; Romero's PD method is 
+    not asymptotically relevant for full-decomposition and will instead only 
+    be compared to our Gray-code method for computing a fixed number of inner
+    products. For that separate test, both methods will be pure-python
+'''.replace('    ',''))
+
+
+
 '''
     Convenience functions
 '''
@@ -96,20 +106,6 @@ if len(sys.argv[1:]) != 1:
 dir = sys.argv[1]
 if dir[-1] != '/':
     dir += '/'
-
-
-
-'''
-    Logged inner-product benchmarking between Jones and Romero
-'''
-
-print('\nBenchmarking inner-product...')
-print('TODO')
-
-# not sure this yet needs dedicated code - the full-decomp tests
-# below inadvertently compare our inner-product times
-
-outFn = dir + 'inner_prod.txt'
 
 
 
