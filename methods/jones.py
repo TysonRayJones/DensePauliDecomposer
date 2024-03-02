@@ -1,4 +1,5 @@
 from numba import njit
+from numpy import array
 
 
 
@@ -37,12 +38,12 @@ def getChangedBit(i, j):
     Pauli functions
 '''
 
-PAULI_MATRICES = [
+PAULI_MATRICES = array([
     [[1,0],[0,1]],
     [[0,1],[1,0]],
     [[0,-1j],[1j,0]],
     [[1,0],[0,-1]]
-]
+])
 
 @njit(inline='always')
 def getPauliFlag(n, t):

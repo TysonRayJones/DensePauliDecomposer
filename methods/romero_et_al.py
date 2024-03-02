@@ -24,7 +24,9 @@ by removing code irrelevant to our testing. Specifically, we:
     edited: 29th Jan 2024
 '''
 
-from numba import njit, jitclass
+from numba import njit
+from numba.experimental import jitclass
+
 import numpy as np
 import itertools as it
 from scipy.sparse import csr_matrix
