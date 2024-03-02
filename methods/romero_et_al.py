@@ -7,10 +7,13 @@ shortened from its original source here:
     https://github.com/sebastianvromero/PauliComposer/blob/main/pauli_decomposer.py
 
 by removing code irrelevant to our testing. Specifically, we:
-- removed code for diagonal and strictly real matrices (we test only dense, complex matrices)
-- removed the spawning of process pools, since we test in serial settings only
-  (both our codes are embarrassingly parallel across distinct coefficients)
-- changed the output structure to a flat array instead of a dictionary (we don't need Pauli strings)
+    - removed code for diagonal and strictly real matrices (we test only dense, complex matrices)
+    - removed the spawning of process pools, since we test in serial settings only
+    - changed the output structure to a flat array instead of a dictionary (we don't need the strings)
+    - removed unused PauliComposer methods and 'weight' constructor optional arg
+    - tidied imports
+    - added just-in-time compilation with Numba
+    - added calcPauliVector() wrapper
 
     author:   Sebastian V. Romero
               sebastianvidalromero@gmail.com
@@ -21,20 +24,20 @@ by removing code irrelevant to our testing. Specifically, we:
     edited: 29th Jan 2024
 '''
 
-
+from numba import njit, jitclass
 import numpy as np
 import itertools as it
-import scipy.sparse as ss
-from numbers import Number
+from scipy.sparse import csr_matrix
 
 
 BINARY = {'I': '0', 'X': '1', 'Y': '1', 'Z': '0'}
 PAULI_LABELS = ['I', 'X', 'Y', 'Z']
 
 
+@jitclass
 class PauliComposer:
 
-    def __init__(self, entry: str, weight: Number = None):
+    def __init__(self, entry: str):
         n = len(entry)
         self.n = n
         self.dim = 1<<n
@@ -43,8 +46,6 @@ class PauliComposer:
         mat_ent = {0: 1, 1: -1j, 2: -1, 3: 1j}
         self.ny = self.entry.count('Y') & 3
         init_ent = mat_ent[self.ny]
-        if weight is not None:
-            init_ent *= weight
         self.init_entry = init_ent
         self.iscomplex = np.iscomplex(init_ent)
         rev_entry = self.entry[::-1]
@@ -53,16 +54,10 @@ class PauliComposer:
         col = np.empty(self.dim, dtype=np.int32)
         col[0] = col_val
 
-        if weight is not None:
-            if self.iscomplex:
-                ent = np.full(self.dim, self.init_entry)
-            else:
-                ent = np.full(self.dim, float(self.init_entry))
+        if self.iscomplex:
+            ent = np.full(self.dim, self.init_entry, dtype=np.complex64)
         else:
-            if self.iscomplex:
-                ent = np.full(self.dim, self.init_entry, dtype=np.complex64)
-            else:
-                ent = np.full(self.dim, self.init_entry, dtype=np.int8)
+            ent = np.full(self.dim, self.init_entry, dtype=np.int8)
 
         for ind in range(n):
             p = 1<<int(ind) 
@@ -77,15 +72,8 @@ class PauliComposer:
         self.col = col
         self.mat = ent
 
-    def to_sparse(self):
-        self.row = np.arange(self.dim)
-        return ss.csr_matrix((self.mat, (self.row, self.col)),
-                             shape=(self.dim, self.dim))
 
-    def to_matrix(self):
-        return self.to_sparse().toarray()
-
-
+@jitclass
 class PauliDecomposer:
 
     def __init__(self, H: np.ndarray):
@@ -121,11 +109,7 @@ class PauliDecomposer:
         return value / self.size
 
 
-
-'''
-    Benchmarked code
-'''
-
-def get_all_coefficients(matrix):
+@njit(cache=True)
+def calcPauliVector(matrix):
     dec = PauliDecomposer(matrix)
     return dec.coefficients
