@@ -71,7 +71,7 @@ def _state_in_pauli_basis_inplace_calculation(
     return ret
 
 
-@njit(cache=True)
+# not jit'd because it merely wraps compiled func below, and bit_length() cannot be compiled
 def calcPauliVector(matrix):
     logDim = matrix.shape[0].bit_length() - 1
     return _state_in_pauli_basis_inplace_calculation(logDim, matrix.copy())
