@@ -9,10 +9,12 @@ by removing code irrelevant to our testing. Specifically, we:
     - additionally return imaginary component of Pauli vector
     - renormalise Pauli vector element outputs (dividing by 2^numQubits)
     - removed pre- and post-condition checking
+    - removed python type clues (for consistency with other JIT'd methods)
     - renamed density_matrix to matrix (method confirmed compatible with arbitrary complex matrices)
     - removed function '_make_n_paulis()' and related imports not used by main algorithm
     - removed docstring
     - removed 'state_in_pauli_basis()' interface function
+    - renamed '_state_in_pauli_basis_inplace_calculation' to '_calcAllCoeffs'
     - added 'calcPauliVector()' wrapper
 
     author:   hari64boli64
@@ -26,17 +28,39 @@ by removing code irrelevant to our testing. Specifically, we:
 
 from numba import njit
 import numpy as np
-from scipy.sparse import csr_matrix
 
 
-#@njit(cache=True)
-def _state_in_pauli_basis_inplace_calculation(
-    n_qubit: int, matrix: np.ndarray
-) -> np.ndarray:
+
+'''
+    Bitwise functions (to enable compiling calcPauliCoeffs())
+'''
+
+@njit(inline='always')
+def getLog2(n):
+    r  = (n & 0xAAAAAAAA)  != 0
+    r |= ((n & 0xFFFF0000) != 0) << 4
+    r |= ((n & 0xFF00FF00) != 0) << 3
+    r |= ((n & 0xF0F0F0F0) != 0) << 2
+    r |= ((n & 0xCCCCCCCC) != 0) << 1
+    return r
+
+
+
+'''
+    Decomposition
+'''
+
+@njit(cache=True)
+def calcPauliVector(matrix):
+
+    # must not mutate original matrix
+    matrix = matrix.copy()
+
+    size = len(matrix)
+    n_qubit = getLog2(size)
     
     # The following code is based on FWHT like method.
     # Reference: https://en.wikipedia.org/wiki/Fast_Walsh%E2%80%93Hadamard_transform
-    size = 2**n_qubit
     for k in range(n_qubit):
         shift = 1 << k
         for i_offset in range(0, size, shift * 2):
@@ -61,6 +85,7 @@ def _state_in_pauli_basis_inplace_calculation(
         for s in range(n_qubit):
             if i & (1 << s):
                 interlace_zeros[i] |= 1 << (2 * s)
+
     ret = np.zeros(size * size, np.complex128)
     norm = 1/float(size)
     for i in range(size):
@@ -71,7 +96,12 @@ def _state_in_pauli_basis_inplace_calculation(
     return ret
 
 
-# not jit'd because it merely wraps compiled func below, and bit_length() cannot be compiled
-def calcPauliVector(matrix):
-    logDim = matrix.shape[0].bit_length() - 1
-    return _state_in_pauli_basis_inplace_calculation(logDim, matrix.copy())
+
+'''
+    Inner-products
+'''
+
+@njit(cache=True)
+def calcInnerProds(matrix, inds):
+    all_coeffs = calcPauliVector(matrix)
+    return [all_coeffs[i] for i in inds]

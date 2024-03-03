@@ -12,9 +12,10 @@ by removing code irrelevant to our testing. Specifically, we:
     - changed the output structure to a flat array instead of a dictionary (we don't need the strings)
     - removed unused PauliComposer methods and 'weight' constructor optional arg
     - tidied imports
-    - unsuccessfully attempted to add just-in-time compilation with Numba; we will compare
-      inner-product functionality with Gray-code method with no JIT. 
+    - (unsuccessfully attempted to add just-in-time compilation with Numba)
     - added calcPauliVector() wrapper
+
+This file is made mostly redundant by a refactored implementation in 'new_romero.py'.
 
     author:   Sebastian V. Romero
               sebastianvidalromero@gmail.com
@@ -25,19 +26,14 @@ by removing code irrelevant to our testing. Specifically, we:
     edited: 29th Jan 2024
 '''
 
-#from numba import njit
-#from numba.experimental import jitclass
-
 import numpy as np
 import itertools as it
-from scipy.sparse import csr_matrix
 
 
 BINARY = {'I': '0', 'X': '1', 'Y': '1', 'Z': '0'}
 PAULI_LABELS = ['I', 'X', 'Y', 'Z']
 
 
-#@jitclass
 class PauliComposer:
 
     def __init__(self, entry: str):
@@ -76,7 +72,6 @@ class PauliComposer:
         self.mat = ent
 
 
-#@jitclass
 class PauliDecomposer:
 
     def __init__(self, H: np.ndarray):
@@ -112,7 +107,6 @@ class PauliDecomposer:
         return value / self.size
 
 
-#@njit(cache=True)
 def calcPauliVector(matrix):
     dec = PauliDecomposer(matrix)
     return dec.coefficients

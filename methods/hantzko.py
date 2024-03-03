@@ -16,7 +16,7 @@ by removing code irrelevant to our testing. Specifically, we:
     - replaced 'tab' indenting with '4 spaces'
     - removed superfluous 'coefficients' dict (replaced with tuple enumeration)
     - minor reformatting of algebra
-    - added 'calcPauliVector()' wrapper
+    - renamed 'PauliDecomposition' to 'calcPauliVector()'
 
     author:   Lukas Hantzko
               lukas.hantzko@stud.uni-hannover.de
@@ -30,12 +30,17 @@ by removing code irrelevant to our testing. Specifically, we:
 
 from numba import njit
 import numpy as np
-import scipy.sparse as sp
 import math
 
 
-#@njit(cache=True)
-def PauliDecomposition(matrix):
+
+'''
+    Decomposition
+'''
+
+
+@njit(cache=True)
+def calcPauliVector(matrix):
 
     matDim = matrix.shape[0]
     qBitDim = math.ceil(np.log(matDim)/np.log(2))
@@ -57,12 +62,18 @@ def PauliDecomposition(matrix):
     # Recursion for the Submatrices
     coeffs = []
     for mat in (coeff1, coeffX, coeffY, coeffZ):
-        subDec = PauliDecomposition(mat)
+        subDec = calcPauliVector(mat)
         coeffs.extend(subDec)
 
     return coeffs
 
 
-#@njit(cache=True)
-def calcPauliVector(matrix):
-    return PauliDecomposition(matrix)
+
+'''
+    Inner-products
+'''
+
+@njit(cache=True)
+def calcInnerProds(matrix, inds):
+    all_coeffs = calcPauliVector(matrix.copy())
+    return [all_coeffs[i] for i in inds]
