@@ -66,42 +66,46 @@ def getPauliFlag(n, t):
 '''
 
 @njit(cache=True)
-def _calcIndAndCoeffArrays(paulis):
+def _getIndArray(paulis):
 
     # allocate 2^N memory for 'colInds'
-    numPaulis = len(paulis)
-    dim = getPowerOf2(numPaulis)
+    dim = getPowerOf2(len(paulis))
     colInds = np.empty(dim, dtype=np.int32)
 
     # set first col elem to integer with bits paulis[n]==(X|Y)
     colInds[0] = sum(
         (p in [1,2]) * getPowerOf2(n) 
         for n,p in enumerate(reversed(paulis)))
+    
+    # set remaining colInds
+    for i in range(len(paulis)):
+        j = getPowerOf2(i)
+        s = 1 if paulis[-i-1] in [0,3] else -1 # sign = IZ vs XY
+        colInds[j:j<<1] = colInds[0:j] + s * j
+
+    return colInds
+
+
+@njit(cache=True)
+def _getCoeffArray(paulis):
 
     # initial 'coeffs' elem informed by Y=2 parity
     numY = paulis.count(2)
     elem = [1, -1j, -1, 1j][numY & 3] #  = %4
 
-    # allocate and fill 'mat' 2^N memory with elem (avoid complex type if possible)
+    # allocate and fill 'coeffs' 2^N memory with elem (avoid complex type if possible)
     elemType = np.complex64 if np.iscomplex(elem) else np.int8
+    dim = getPowerOf2(len(paulis))
     coeffs = np.full(dim, elem, dtype=elemType)
 
-    for i in range(numPaulis):
+    # overwrite coeffs
+    for i in range(len(paulis)):
+        j = getPowerOf2(i)
+        s = 1 if paulis[-i-1] in [0,1] else -1 # sign = IX vs YZ
+        coeffs[j:j<<1] = s * coeffs[0:j]
 
-        # indices of sub-array to overwrite
-        j1 = getPowerOf2(i)
-        j2 = j1 << 1 # = *2
+    return coeffs
 
-        # sign determined by IZ vs XY
-        fac = 1 if paulis[-i-1] in [0,3] else -1
-        colInds[j1:j2] = colInds[0:j1] + fac * j1
-
-        # sign determined by IX vs YZ
-        fac = 1 if paulis[-i-1] in [0,1] else -1
-        coeffs[j1:j2] = fac * coeffs[0:j1]
-
-    return colInds, coeffs
-    
 
 @njit(cache=True)
 def _calcPauliCoeff(n, matrix):
@@ -110,7 +114,8 @@ def _calcPauliCoeff(n, matrix):
     numPaulis = getLog2(dim)
                         
     paulis = [getPauliFlag(n,t) for t in range(numPaulis-1,-1,-1)]
-    colInds, factors = _calcIndAndCoeffArrays(paulis)
+    colInds = _getIndArray(paulis)
+    factors = _getCoeffArray(paulis)
 
     coeff = 0
     for r in range(len(matrix)):
