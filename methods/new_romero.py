@@ -59,6 +59,14 @@ def getPauliFlag(n, t):
     b1 = getBit(n, 2*t+1)
     return (b1 << 1) | b0
 
+@njit(inline='always')
+def getNumFromBits(bits):
+    # numba can't handle sum() comprehension :'c
+    num = 0
+    for i, b in enumerate(bits):
+        num += b * getPowerOf2(i)
+    return num
+
 
 
 '''
@@ -73,9 +81,7 @@ def _getIndArray(paulis):
     colInds = np.empty(dim, dtype=np.int32)
 
     # set first col elem to integer with bits paulis[n]==(X|Y)
-    colInds[0] = sum(
-        (p in [1,2]) * getPowerOf2(n) 
-        for n,p in enumerate(reversed(paulis)))
+    colInds[0] = getNumFromBits(p in [1,2] for p in reversed(paulis))
     
     # set remaining colInds
     for i in range(len(paulis)):
