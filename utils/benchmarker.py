@@ -1,8 +1,11 @@
-from time import process_time_ns
 from numba import config
+
+from time import process_time_ns
+import gc
 
 from .mmaformatter import save_as_mma
 from .randomiser import getRandomMatrix, getRandomPauliProdInd
+from .memorymeasurer import getMemory
 
 
 def repeatedlyTime(func, argFunc, numReps):
@@ -89,3 +92,59 @@ def benchmarkInnerProds(fn, namedMethods, minQubits, maxQubits, maxNumProdsFunc,
                     
                     # save all results so far to file (overwriting, so job can be safely interrupted)
                     save_as_mma(results, fn)
+
+
+
+def memoryProfileInnerProds(fn, name, method, minQubits, maxQubits, numReps=100):
+
+    results = {
+        'numReps': numReps, 
+        'minQubits': minQubits,
+        'maxQubits': maxQubits,
+        'reachedQubits': -1,
+        'method': name,
+        'gc_memories': {},
+        'no_gc_memories': {},
+        'structure': 'gc_memories -> numQubits -> [{memory dict}, ...]',
+        'jit': not bool(config.DISABLE_JIT)
+    }
+
+    for numQubits in range(minQubits, maxQubits+1):
+        print('numQubits =', numQubits)
+
+        # tiny linearly growing log memory is occluded in profiling
+        results['gc_memories'][numQubits] = []
+        results['no_gc_memories'][numQubits] = []
+        
+        for _ in range(numReps):
+
+            # profile memory with auto garbage collection (can consult only peak values)
+            gc.enable()
+
+            matrix = getRandomMatrix(numQubits)
+            inds = [getRandomPauliProdInd(numQubits, numQubits)]
+            method(matrix, inds)
+            mem = getMemory()
+            results['gc_memories'][numQubits].append(mem)
+
+            # garbage collect
+            del matrix
+            gc.collect()
+
+            # profile memory with no garbage collection during method
+            gc.disable()
+
+            matrix = getRandomMatrix(numQubits)
+            inds = [getRandomPauliProdInd(numQubits, numQubits)]
+            method(matrix, inds)
+            mem = getMemory()
+            results['no_gc_memories'][numQubits].append(mem)
+
+            # garbage collect
+            gc.enable() # paranoid
+            del matrix
+            gc.collect()
+
+        # save all results so far to file (overwriting, so job can be safely interrupted)
+        results['reachedQubits'] = numQubits
+        save_as_mma(results, fn)

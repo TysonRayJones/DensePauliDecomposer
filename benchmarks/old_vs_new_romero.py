@@ -13,6 +13,7 @@
 import sys; sys.path.insert(0, '.')
 
 from utils.benchmarker import benchmarkFullDecomp
+
 import methods.old_romero
 import methods.new_romero
 

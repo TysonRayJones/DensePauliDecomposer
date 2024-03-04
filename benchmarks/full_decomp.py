@@ -7,6 +7,7 @@ import sys; sys.path.insert(0, '.')
 from numba import config
 
 from utils.benchmarker import benchmarkFullDecomp
+
 import methods.jones
 import methods.new_romero
 import methods.hamaguchi

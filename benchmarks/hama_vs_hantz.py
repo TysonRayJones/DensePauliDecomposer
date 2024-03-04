@@ -11,6 +11,7 @@
 import sys; sys.path.insert(0, '.')
 
 from utils.benchmarker import benchmarkFullDecomp
+
 import methods.hamaguchi
 import methods.hantzko
 
