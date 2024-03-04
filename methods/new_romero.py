@@ -81,7 +81,7 @@ def _getIndArray(paulis):
     colInds = np.empty(dim, dtype=np.int32)
 
     # set first col elem to integer with bits paulis[n]==(X|Y)
-    colInds[0] = getNumFromBits(p in [1,2] for p in reversed(paulis))
+    colInds[0] = getNumFromBits([paulis[-i-1] in [1,2] for i in range(len(paulis))])
     
     # set remaining colInds
     for i in range(len(paulis)):
@@ -100,7 +100,9 @@ def _getCoeffArray(paulis):
     elem = [1, -1j, -1, 1j][numY & 3] #  = %4
 
     # allocate and fill 'coeffs' 2^N memory with elem (avoid complex type if possible)
-    elemType = np.complex64 if np.iscomplex(elem) else np.int8
+    #   elemType = np.complex64 if np.iscomplex(elem) else np.int8
+    # actually we cannot avoid complex when compiling, since the type must be a priori known
+    elemType = np.complex64
     dim = getPowerOf2(len(paulis))
     coeffs = np.full(dim, elem, dtype=elemType)
 
