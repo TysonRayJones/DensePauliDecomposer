@@ -97,6 +97,15 @@ def benchmarkInnerProds(fn, namedMethods, minQubits, maxQubits, maxNumProdsFunc,
 
 def memoryProfileInnerProds(fn, name, method, minQubits, maxQubits, numReps=100):
 
+    '''
+        WARNING: this seems a _very_ dubious measure of memory. Firstly, deactivating
+        the (heap) garbage collector does not prevent stack clearing when funcftions return
+        (of course), so we would have to consult VmHWM (the peak resident memory) in order
+        to even see the memory footprint of Hantzko's method. Secondly, it's not a priori
+        obvious that all the data structures herein used will not occlude the memory
+        benchmarking, even for larger #numQubits. Thirdly... I'm just suspicious ¯\_(ツ)_/¯
+    '''
+
     results = {
         'numReps': numReps, 
         'minQubits': minQubits,
